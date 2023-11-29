@@ -1,23 +1,30 @@
+:root {
+    --background-color: #7a6a6d;
+    --letter-border-color: #4C4347;
+    --letter-color: #615458;
+    --letter-correct-color: #3aa394;
+    --letter-place-color: #d3ad69;
+    --letter-wrong-color: #312a2c;
+}
+
 body {
-    background-color: burlywood;
+    background-color: var(--background-color);
 }
 
-.termo-body {
+#termo-table {
     margin: auto;
 }
 
-.termo-table {
-    margin: auto;
-}
-
-.termo-table .letter {
+.letter {
+    aspect-ratio: 1;
     font-family: Arial, Helvetica, sans-serif;
-    color: white;
+    color: #FAFAFF;
     font-size: 30px;
     font-weight: bold;
     width: 60px;
     height: 60px;
-    border: 5px solid grey;
+    border: 5px solid var(--letter-border-color);
+    background-color: var(--letter-border-color);
     border-radius: 5px;
     display: flex;
     justify-content: center;
@@ -32,20 +39,29 @@ body {
     -webkit-box-sizing: border-box;
 }
 
-.letter.focused {
-    border-bottom: 10px solid grey;
+.letter:hover {
+    cursor: pointer;
 }
 
+.letter.correct {
+    background-color: var(--letter-correct-color);
+    border-color: var(--letter-correct-color);
+}
 
-.termo-letter {
-    padding-top: 10px;
-    padding-bottom: 0px;
-    margin-left: 5px;
-    margin-right: 5px;
-    list-style-type: none;
-    width: 40px;
-    height: 40px;
-    border: 3px solid grey;
-    border-radius: 15px;
-    text-align: center;
+.letter.place {
+    background-color: var(--letter-place-color);
+    border-color: var(--letter-place-color);
+}
+
+.letter.wrong {
+    background-color: var(--letter-wrong-color);
+    border-color: var(--letter-wrong-color);
+}
+
+.letter.empty {
+    background-color: transparent;
+}
+
+.letter.focused {
+    border-bottom: 10px solid var(--letter-border-color) !important;
 }

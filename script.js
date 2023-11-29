@@ -1,74 +1,273 @@
 // Word length
-var wordLength = 5
+const WORD_LENGTH = 5
 
 // Current letter focused
 var currentFocus = 0
 
+// Current number of attempts
+var attempts = 0
+
+// Max attempts
+const MAX_ATTEMPTS = 6
+
+// List of possible words
+var words = []
+
 // State variable to prevent async gaps
 var isHandling = false
 
-function getFocusedInput() {
-    return document.getElementById(`input-${currentFocus}`)
+// Current word
+var currentWord = ""
+
+function stringCount(string, char) {
+    var count = 0
+    for (var i = 0; i < string.length; i++) {
+        if (string[i] == char) {
+            count++
+        }
+    }
+
+    return count
+}
+
+async function loadWords() {
+    await fetch("palavras.txt")
+        .then((res) => res.text())
+        .then((text) => {
+            words = text.split("\n").map((word) => word.toUpperCase())
+        })
+        .catch((e) => console.error(e))
+}
+
+function chooseWord() {
+    if (words.length === 0) {
+        throw Error('Words list is empty')
+    }
+
+    var word
+    while (true) {
+        word = words[Math.floor(Math.random() * words.length)]
+        if (word.length === WORD_LENGTH) {
+            return word
+        }
+    }
+}
+
+function getInput(row, col) {
+    return document.getElementById(`input-row-${row}-col-${col}`)
+}
+
+function setFocus(num) {
+    // Remove "focused" class from current focus
+    var input = getInput(attempts, currentFocus)
+    input.classList.remove("focused")
+
+    // Set new focus and add "focused" class
+    currentFocus = num
+    var newInput = getInput(attempts, currentFocus)
+    newInput.classList.add("focused")
 }
 
 function focusPrevious() {
     // Can't go previous if already at the start
     if (currentFocus === 0) return
 
-    // Remove "focused" class from current focus
-    var currentInput = getFocusedInput()
-    currentInput.classList.remove("focused")
-
-    // Decrease focus
-    currentFocus--
-
-    // Add "focused" class to new input
-    var newInput = getFocusedInput()
-    newInput.classList.add("focused")
+    setFocus(currentFocus - 1)
 }
 
 function focusNext() {
     // Can't go next if already at the end
-    if (currentFocus === wordLength - 1) return
+    if (currentFocus === WORD_LENGTH - 1) return
 
-    // Remove "focused" class from current focus
-    var currentInput = getFocusedInput()
-    currentInput.classList.remove("focused")
-
-    // Increase focus
-    currentFocus++
-
-    // Add "focused" class to new input
-    var newInput = getFocusedInput()
-    newInput.classList.add("focused")
+    setFocus(currentFocus + 1)
 }
 
 function clearCurrent() {
-    setKey("")
+    setLetter("")
 
     // Go previous
     focusPrevious()
 }
 
-function setKey(letter) {
+function setLetter(letter) {
     // Find input for current focus
-    var input = getFocusedInput()
+    var input = getInput(attempts, currentFocus)
 
     // Set value
     input.innerHTML = letter.toUpperCase()
-
-    // Focus next
-    focusNext()
 }
 
-function onLoad() {
+function invalidAttempt(message) {
+    alert(`Invalid attempt: ${message}`)
+}
+
+function won() {
+    alert("You won!")
+}
+
+function lost() {
+    alert("You lost...")
+}
+
+function submitAttempt() {
+    // Form attempt string
+    var attempt = ""
+    for (var i = 0; i < WORD_LENGTH; i++) {
+        // Get input
+        var input = getInput(attempts, i)
+
+        // Get letter
+        var letter = input.innerHTML.toString().toUpperCase()
+
+        // If empty, invalid
+        if (letter === "") {
+            invalidAttempt("Incomplete word")
+            return null
+        }
+
+        attempt += letter
+    }
+
+    // Contador de cada caractere na tentativa atual
+    var letterCount = {}
+
+    // Store what happens for each letter
+    var attemptState = [...Array(WORD_LENGTH).keys()].map((i) => 'wrong')
+
+    // Correct letters (green)
+    for (var i = 0; i < WORD_LENGTH; i++) {
+        // Attempt letter
+        var letter = attempt[i]
+
+        // Letter position in actual word
+        var pos = currentWord.indexOf(letter, i)
+        if (pos === -1) {
+            continue
+        }
+
+        if (pos == i || currentWord[i] == letter) {
+            // Correct
+            attemptState[i] = 'correct'
+            letterCount[letter] =
+                (letterCount[letter] ?? 0) + 1
+        }
+    }
+
+    // Incorrect place letters (yellow)
+    for (var i = 0; i < WORD_LENGTH; i++) {
+        // Attempt letter
+        var letter = attempt[i]
+
+        /// Letter position in actual word
+        var pos = currentWord.indexOf(letter)
+        if (pos === -1) {
+            continue
+        }
+
+        if (pos != i && (letterCount[letter] ?? 0) < stringCount(currentWord, letter) && attemptState[i] == 'wrong') {
+            // Wrong position
+            attemptState[i] = 'place'
+            letterCount[letter] = (letterCount[letter] ?? 0) + 1
+        }
+    }
+
+    // Set classes on each letter
+    for (var i = 0; i < WORD_LENGTH; i++) {
+        var input = getInput(attempts, i)
+
+        // Remove "empty" class (and possibly "focused")
+        input.classList.remove("empty")
+        input.classList.remove("focused")
+
+        // Get state and add to class list
+        var state = attemptState[i]
+        input.classList.add(state)
+    }
+
+    // Increment attempts
+    attempts++
+
+    return attempt
+}
+
+
+function createRow(n) {
+    // Start of row
+    var row = document.createElement("tr")
+    row.setAttribute("id", `row-${n}`)
+
+    // Add columns
+    for (var i = 0; i < WORD_LENGTH; i++) {
+        // Create column
+        var col = document.createElement("td")
+
+        // Create div inside column
+        var div = document.createElement("div")
+
+        // Set attributes for div
+        div.setAttribute("id", `input-row-${n}-col-${i}`)
+        div.classList.add("letter")
+
+        // Put div inside column
+        col.append(div)
+
+        // Put column inside row
+        row.append(col)
+    }
+
+    // Append to termo-table
+    var termoTable = document.getElementById("termo-table")
+    termoTable.append(row)
+}
+
+function setRow(row, focused) {
+    // For all divs inside row, set classes
+    for (var i = 0; i < WORD_LENGTH; i++) {
+        var input = getInput(row, i)
+        if (focused) {
+            input.classList.add("empty")
+            if (i === 0) {
+                input.classList.add("focused")
+            }
+        }
+    }
+}
+
+function startGame() {
+    // Choose new random word
+    currentWord = chooseWord()
+    console.log(`Chosen word: ${currentWord}`)
+
+    // Clear termo-table
+    var termoTable = document.getElementById("termo-table")
+    termoTable.innerHTML = ""
+
+    // Create rows
+    for (var i = 0; i < MAX_ATTEMPTS; i++) {
+        createRow(i)
+        setRow(i, i == 0)
+    }
+
+    // Reset variables
+    attempts = 0
+    setFocus(0)
+}
+
+async function onLoad() {
+    // Load words
+    await loadWords()
+
+    // Start
+    startGame()
+
     // Listen for keydown
     document.addEventListener('keydown', (event) => {
         // Check if already handling
-        if (isHandling) return
+        if (isHandling) {
+            return
+        }
 
         var code = event.code
-        console.log(code)
 
         // Stop handling keys
         isHandling = true
@@ -77,23 +276,43 @@ function onLoad() {
         if (code === "ArrowLeft") {
             // Go previous
             focusPrevious()
-            return
         } else if (code === "ArrowRight") {
             // Go next
             focusNext()
-            return
         } else if (code === "Backspace") {
             // Clear current
             clearCurrent()
-            return
-        } else if (code.substring(0, 3) !== 'Key') {
-            // Not a letter
-            return
+        } else if (code === "Enter") {
+            // Submit attempt
+            var attempt = submitAttempt()
+
+            // Check state
+            if (attempt == currentWord) {
+                // Same word, won
+                setTimeout(() => {
+                    won()
+                    setTimeout(startGame, 100)
+                }, 100)
+            } else if (attempts === MAX_ATTEMPTS) {
+                // Last attempt, lost
+                setTimeout(() => {
+                    lost()
+                    setTimeout(startGame, 100)
+                }, 100)
+            } else if (attempt !== null) {
+                // Continue playing
+                // Set new row
+                setFocus(0)
+                setRow(attempts, true)
+            }
+        } else if (code.substring(0, 3) === 'Key') {
+            // Get pressed key
+            var letter = code.substring(3)
+
+            // Set letter and go next
+            setLetter(letter)
+            focusNext()
         }
-        
-        // Get pressed key
-        var letter = code.substring(3)
-        setKey(letter)
 
         // Can handle next key
         isHandling = false
