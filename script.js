@@ -260,6 +260,17 @@ function startGame() {
     var termoTable = document.getElementById("termo-table")
     termoTable.innerHTML = ""
 
+    // Clear keyboard-table
+    for (var i = 65; i < 91; i++) {
+        var char = String.fromCharCode(i)
+        var keyLetter = getKeyboardLetter(char)
+        
+        // Remove classes
+        keyLetter.classList.remove('wrong')
+        keyLetter.classList.remove('place')
+        keyLetter.classList.remove('correct')
+    }
+
     // Create rows
     for (var i = 0; i < MAX_ATTEMPTS; i++) {
         createRow(i)
