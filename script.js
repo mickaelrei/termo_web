@@ -34,7 +34,7 @@ async function loadWords() {
     await fetch("palavras.txt")
         .then((res) => res.text())
         .then((text) => {
-            words = text.split("\n").map((word) => word.toUpperCase())
+            words = text.split("\n").map((word) => word.trim().toUpperCase())
         })
         .catch((e) => console.error(e))
 }
@@ -47,7 +47,7 @@ function chooseWord() {
     var word
     while (true) {
         word = words[Math.floor(Math.random() * words.length)]
-        if (word.length === WORD_LENGTH) {
+        if (word !== currentWord && word.length === WORD_LENGTH) {
             return word
         }
     }
@@ -55,6 +55,10 @@ function chooseWord() {
 
 function getInput(row, col) {
     return document.getElementById(`input-row-${row}-col-${col}`)
+}
+
+function getKeyboardLetter(letter) {
+    return document.getElementById(`key-${letter}`)
 }
 
 function setFocus(num) {
@@ -106,7 +110,11 @@ function won() {
 }
 
 function lost() {
-    alert("You lost...")
+    if (currentWord !== null) {
+        alert(`You lost. Word was: ${currentWord}`)
+    } else {
+        alert(`You lost...`)
+    }
 }
 
 function submitAttempt() {
@@ -182,6 +190,16 @@ function submitAttempt() {
         // Get state and add to class list
         var state = attemptState[i]
         input.classList.add(state)
+
+        // Set classes on keyboard letters
+        var keyboardLetter = getKeyboardLetter(attempt[i])
+        keyboardLetter.classList.add(state)
+        // if (state === 'place') {
+        //     keyboardLetter.classList.add('place')
+        // } else if (state === 'correct') {
+        //     keyboardLetter.classList.remove('place')
+        //     keyboardLetter.classList.add('correct')
+        // }
     }
 
     // Increment attempts

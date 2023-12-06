@@ -12,25 +12,27 @@
 <body>
     <table id="termo-table">
         <thead>
+            <!-- Example of input row with focus -->
             <tr id="row-0">
                 <td>
-                    <div id="input-row-0-col-0" class="letter"></div>
+                    <div id="input-row-0-col-0" class="letter empty"></div>
                 </td>
                 <td>
-                    <div id="input-row-0-col-1" class="letter"></div>
+                    <div id="input-row-0-col-1" class="letter empty"></div>
                 </td>
                 <td>
-                    <div id="input-row-0-col-2" class="letter"></div>
+                    <div id="input-row-0-col-2" class="letter empty"></div>
                 </td>
                 <td>
-                    <div id="input-row-0-col-3" class="letter"></div>
+                    <div id="input-row-0-col-3" class="letter empty"></div>
                 </td>
                 <td>
-                    <div id="input-row-0-col-4" class="letter"></div>
+                    <div id="input-row-0-col-4" class="letter empty"></div>
                 </td>
             </tr>
         </thead>
         <tbody>
+            <!-- Example of input row without focus (already/not yet used) -->
             <tr id="row-1">
                 <td>
                     <div id="input-row-1-col-0" class="letter"></div>
@@ -48,78 +50,105 @@
                     <div id="input-row-1-col-4" class="letter"></div>
                 </td>
             </tr>
-            <tr id="row-2">
-                <td>
-                    <div id="input-row-2-col-0" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-2-col-1" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-2-col-2" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-2-col-3" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-2-col-4" class="letter"></div>
-                </td>
-            </tr>
-            </tr>
-            <tr id="row-3">
-                <td>
-                    <div id="input-row-3-col-0" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-3-col-1" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-3-col-2" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-3-col-3" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-3-col-4" class="letter"></div>
-                </td>
-            </tr>
-            </tr>
-            <tr id="row-4">
-                <td>
-                    <div id="input-row-4-col-0" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-4-col-1" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-4-col-2" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-4-col-3" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-4-col-4" class="letter"></div>
-                </td>
-            </tr>
-            </tr>
-            <tr id="row-5">
-                <td>
-                    <div id="input-row-5-col-0" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-5-col-1" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-5-col-2" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-5-col-3" class="letter"></div>
-                </td>
-                <td>
-                    <div id="input-row-5-col-4" class="letter"></div>
-                </td>
-            </tr>
         </tbody>
+    </table>
+    <table id="keyboard">
+        <tr>
+            <td>
+                <div id="key-Q" class="letter">Q</div>
+            </td>
+            <td>
+                <div id="key-W" class="letter">W</div>
+            </td>
+            <td>
+                <div id="key-E" class="letter">E</div>
+            </td>
+            <td>
+                <div id="key-R" class="letter">R</div>
+            </td>
+            <td>
+                <div id="key-T" class="letter">T</div>
+            </td>
+            <td>
+                <div id="key-Y" class="letter">Y</div>
+            </td>
+            <td>
+                <div id="key-U" class="letter">U</div>
+            </td>
+            <td>
+                <div id="key-I" class="letter">I</div>
+            </td>
+            <td>
+                <div id="key-O" class="letter">O</div>
+            </td>
+            <td>
+                <div id="key-P" class="letter">P</div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="key-A" class="letter">A</div>
+            </td>
+            <td>
+                <div id="key-S" class="letter">S</div>
+            </td>
+            <td>
+                <div id="key-D" class="letter">D</div>
+            </td>
+            <td>
+                <div id="key-F" class="letter">F</div>
+            </td>
+            <td>
+                <div id="key-G" class="letter">G</div>
+            </td>
+            <td>
+                <div id="key-H" class="letter">H</div>
+            </td>
+            <td>
+                <div id="key-J" class="letter">J</div>
+            </td>
+            <td>
+                <div id="key-K" class="letter">K</div>
+            </td>
+            <td>
+                <div id="key-L" class="letter">L</div>
+            </td>
+            <td>
+                <div id="backspace" class="letter">
+                    <img src="img/backspace.png" alt="" style="width: 40px; height: 40px; filter: invert(100%);">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="key-Z" class="letter">Z</div>
+            </td>
+            <td>
+                <div id="key-X" class="letter">X</div>
+            </td>
+            <td>
+                <div id="key-C" class="letter">C</div>
+            </td>
+            <td>
+                <div id="key-V" class="letter">V</div>
+            </td>
+            <td>
+                <div id="key-B" class="letter">B</div>
+            </td>
+            <td>
+                <div id="key-N" class="letter">N</div>
+            </td>
+            <td>
+                <div id="key-M" class="letter">M</div>
+            </td>
+            <td></td>
+            <td></td>
+            <td>
+                <div id="enter" class="letter">
+                    <img src="img/enter.png" alt="" style="width: 40px; height: 40px; filter: invert(100%);">
+                </div>
+            </td>
+        </tr>
     </table>
 </body>
 

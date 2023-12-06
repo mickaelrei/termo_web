@@ -15,6 +15,10 @@ body {
     margin: auto;
 }
 
+#keyboard {
+    margin: auto;
+}
+
 .letter {
     aspect-ratio: 1;
     font-family: Arial, Helvetica, sans-serif;
@@ -23,8 +27,8 @@ body {
     font-weight: bold;
     width: 60px;
     height: 60px;
-    border: 5px solid var(--letter-border-color);
-    background-color: var(--letter-border-color);
+    border: 5px solid #615458;
+    background-color: #615458;
     border-radius: 5px;
     display: flex;
     justify-content: center;
@@ -59,6 +63,7 @@ body {
 }
 
 .letter.empty {
+    border: 5px solid var(--letter-border-color);
     background-color: transparent;
 }
 
