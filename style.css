@@ -11,6 +11,10 @@ body {
     background-color: var(--background-color);
 }
 
+#games {
+    margin: auto;
+}
+
 #termo-table {
     margin: auto;
 }

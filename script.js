@@ -1,14 +1,23 @@
 // Word length
 const WORD_LENGTH = 5
 
+// Max attempts
+var maxAttempts = 6
+
+/// Wheter to calculate number of max attempts based on number of games
+var calculateMaxAttempts = true
+
+// Number of simultaneous games
+const NUM_GAMES = 30
+
 // Current letter focused
 var currentFocus = 0
 
-// Current number of attempts
-var attempts = 0
+// List of word attempts
+var attempts = []
 
-// Max attempts
-const MAX_ATTEMPTS = 6
+// Current attempt
+var currentAttempt = ""
 
 // List of possible words
 var words = []
@@ -16,8 +25,11 @@ var words = []
 // State variable to prevent async gaps
 var isHandling = false
 
-// Current word
-var currentWord = ""
+// Current words
+var currentWords = []
+
+// Whether each game has finished or not
+var finishedGames = []
 
 function stringCount(string, char) {
     var count = 0
@@ -39,22 +51,25 @@ async function loadWords() {
         .catch((e) => console.error(e))
 }
 
-function chooseWord() {
+function chooseWords() {
     if (words.length === 0) {
         throw Error('Words list is empty')
     }
 
-    var word
-    while (true) {
-        word = words[Math.floor(Math.random() * words.length)]
-        if (word !== currentWord && word.length === WORD_LENGTH) {
-            return word
+    currentWords = []
+    for (var game = 0; game < NUM_GAMES; game++) {
+        while (true) {
+            var word = words[Math.floor(Math.random() * words.length)]
+            if (word !== currentWords[game] && word.length === WORD_LENGTH) {
+                currentWords[game] = word
+                break
+            }
         }
     }
 }
 
-function getInput(row, col) {
-    return document.getElementById(`input-row-${row}-col-${col}`)
+function getInput(row, col, game = 0) {
+    return document.getElementById(`input-row-${row}-col-${col}-game-${game}`)
 }
 
 function getKeyboardLetter(letter) {
@@ -62,14 +77,22 @@ function getKeyboardLetter(letter) {
 }
 
 function setFocus(num) {
-    // Remove "focused" class from current focus
-    var input = getInput(attempts, currentFocus)
-    input.classList.remove("focused")
+    // Remove "focused" class from current focus on all words
+    for (var game = 0; game < NUM_GAMES; game++) {
+        var input = getInput(attempts.length, currentFocus, game)
+        input.classList.remove("focused")
+    }
 
-    // Set new focus and add "focused" class
+    // Set new focus
     currentFocus = num
-    var newInput = getInput(attempts, currentFocus)
-    newInput.classList.add("focused")
+
+    // Add "focused" class on new focus on all words
+    for (var game = 0; game < NUM_GAMES; game++) {
+        if (finishedGames[game]) continue
+
+        var newInput = getInput(attempts.length, currentFocus, game)
+        newInput.classList.add("focused")
+    }
 }
 
 function focusPrevious() {
@@ -94,11 +117,21 @@ function clearCurrent() {
 }
 
 function setLetter(letter) {
-    // Find input for current focus
-    var input = getInput(attempts, currentFocus)
+    // Update variable
+    var before = currentAttempt.substring(0, currentFocus)
+    var after = currentAttempt.substring(currentFocus + 1)
+    currentAttempt = before + (letter === '' ? '_' : letter) + after
 
-    // Set value
-    input.innerHTML = letter.toUpperCase()
+    // Update inputs
+    for (var game = 0; game < NUM_GAMES; game++) {
+        if (finishedGames[game]) continue
+
+        // Find input for current focus
+        var input = getInput(attempts.length, currentFocus, game)
+
+        // Set value
+        input.innerHTML = letter.toUpperCase()
+    }
 }
 
 function invalidAttempt(message) {
@@ -110,109 +143,103 @@ function won() {
 }
 
 function lost() {
-    if (currentWord !== null) {
-        alert(`You lost. Word was: ${currentWord}`)
+    if (currentWords !== null) {
+        alert(`You lost. Words were: ${currentWords.join(', ')}`)
     } else {
         alert(`You lost...`)
     }
 }
 
 function submitAttempt() {
-    // Form attempt string
-    var attempt = ""
+    // Check for valid attempt
     for (var i = 0; i < WORD_LENGTH; i++) {
-        // Get input
-        var input = getInput(attempts, i)
-
-        // Get letter
-        var letter = input.innerHTML.toString().toUpperCase()
-
-        // If empty, invalid
-        if (letter === "") {
+        if (currentAttempt[i] === '_') {
             invalidAttempt("Incomplete word")
             return null
         }
-
-        attempt += letter
     }
 
-    // Contador de cada caractere na tentativa atual
-    var letterCount = {}
-
-    // Store what happens for each letter
-    var attemptState = [...Array(WORD_LENGTH).keys()].map((i) => 'wrong')
-
-    // Correct letters (green)
-    for (var i = 0; i < WORD_LENGTH; i++) {
-        // Attempt letter
-        var letter = attempt[i]
-
-        // Letter position in actual word
-        var pos = currentWord.indexOf(letter, i)
-        if (pos === -1) {
+    for (var game = 0; game < NUM_GAMES; game++) {
+        // Check if already won
+        if (finishedGames[game]) {
             continue
+        } else if (currentAttempt === currentWords[game]) {
+            finishedGames[game] = true
         }
 
-        if (pos == i || currentWord[i] == letter) {
-            // Correct
-            attemptState[i] = 'correct'
-            letterCount[letter] =
-                (letterCount[letter] ?? 0) + 1
+        // Counter for each letter in the current attempt
+        var letterCount = {}
+
+        // Store what happens for each letter
+        var attemptState = [...Array(WORD_LENGTH).keys()].map((i) => 'wrong')
+
+        // Correct letters (green)
+        for (var i = 0; i < WORD_LENGTH; i++) {
+            // Attempt letter
+            var letter = currentAttempt[i]
+
+            // Letter position in actual word
+            var pos = currentWords[game].indexOf(letter, i)
+            if (pos === -1) {
+                continue
+            }
+
+            if (pos == i || currentWords[game][i] == letter) {
+                // Correct
+                attemptState[i] = 'correct'
+                letterCount[letter] = (letterCount[letter] ?? 0) + 1
+            }
         }
-    }
 
-    // Incorrect place letters (yellow)
-    for (var i = 0; i < WORD_LENGTH; i++) {
-        // Attempt letter
-        var letter = attempt[i]
+        // Incorrect place letters (yellow)
+        for (var i = 0; i < WORD_LENGTH; i++) {
+            // Attempt letter
+            var letter = currentAttempt[i]
 
-        /// Letter position in actual word
-        var pos = currentWord.indexOf(letter)
-        if (pos === -1) {
-            continue
+            /// Letter position in actual word
+            var pos = currentWords[game].indexOf(letter)
+            if (pos === -1) {
+                continue
+            }
+
+            if (pos != i && (letterCount[letter] ?? 0) < stringCount(currentWords[game], letter) && attemptState[i] == 'wrong') {
+                // Wrong position
+                attemptState[i] = 'place'
+                letterCount[letter] = (letterCount[letter] ?? 0) + 1
+            }
         }
 
-        if (pos != i && (letterCount[letter] ?? 0) < stringCount(currentWord, letter) && attemptState[i] == 'wrong') {
-            // Wrong position
-            attemptState[i] = 'place'
-            letterCount[letter] = (letterCount[letter] ?? 0) + 1
+        // Set classes on each letter
+        for (var i = 0; i < WORD_LENGTH; i++) {
+            var input = getInput(attempts.length, i, game)
+
+            // Remove "empty" class (and possibly "focused")
+            input.classList.remove("empty")
+            input.classList.remove("focused")
+
+            // Get state and add to class list
+            var state = attemptState[i]
+            input.classList.add(state)
+
+            // Set classes on keyboard letters
+            var keyboardLetter = getKeyboardLetter(currentAttempt[i])
+            keyboardLetter.classList.add(state)
         }
-    }
-
-    // Set classes on each letter
-    for (var i = 0; i < WORD_LENGTH; i++) {
-        var input = getInput(attempts, i)
-
-        // Remove "empty" class (and possibly "focused")
-        input.classList.remove("empty")
-        input.classList.remove("focused")
-
-        // Get state and add to class list
-        var state = attemptState[i]
-        input.classList.add(state)
-
-        // Set classes on keyboard letters
-        var keyboardLetter = getKeyboardLetter(attempt[i])
-        keyboardLetter.classList.add(state)
-        // if (state === 'place') {
-        //     keyboardLetter.classList.add('place')
-        // } else if (state === 'correct') {
-        //     keyboardLetter.classList.remove('place')
-        //     keyboardLetter.classList.add('correct')
-        // }
     }
 
     // Increment attempts
-    attempts++
+    attempts.push(currentAttempt)
 
-    return attempt
+    // Reset attempt
+    currentAttempt = [...Array(WORD_LENGTH).keys()].map((_) => '_').join('')
+
+    return currentAttempt
 }
 
-
-function createRow(n) {
+function createRow(n, game) {
     // Start of row
     var row = document.createElement("tr")
-    row.setAttribute("id", `row-${n}`)
+    row.setAttribute("id", `row-${n}-game-${game}`)
 
     // Add columns
     for (var i = 0; i < WORD_LENGTH; i++) {
@@ -223,7 +250,7 @@ function createRow(n) {
         var div = document.createElement("div")
 
         // Set attributes for div
-        div.setAttribute("id", `input-row-${n}-col-${i}`)
+        div.setAttribute("id", `input-row-${n}-col-${i}-game-${game}`)
         div.classList.add("letter")
 
         // Put div inside column
@@ -234,15 +261,15 @@ function createRow(n) {
     }
 
     // Append to termo-table
-    var termoTable = document.getElementById("termo-table")
+    var termoTable = document.getElementById(`termo-table-game-${game}`)
     termoTable.append(row)
 }
 
-function setRow(row, focused) {
+function setRow(row, focused, game) {
     // For all divs inside row, set classes
     for (var i = 0; i < WORD_LENGTH; i++) {
-        var input = getInput(row, i)
-        if (focused) {
+        var input = getInput(row, i, game)
+        if (focused && !finishedGames[game]) {
             input.classList.add("empty")
             if (i === 0) {
                 input.classList.add("focused")
@@ -251,35 +278,105 @@ function setRow(row, focused) {
     }
 }
 
-function startGame() {
-    // Choose new random word
-    currentWord = chooseWord()
-    console.log(`Chosen word: ${currentWord}`)
+function setGame(game) {
+    // Create column
+    var col = document.createElement("td")
 
-    // Clear termo-table
-    var termoTable = document.getElementById("termo-table")
-    termoTable.innerHTML = ""
+    // Create table
+    var table = document.createElement("table")
+    table.setAttribute("id", `termo-table-game-${game}`)
+
+    // Add table to column
+    col.append(table)
+
+    // Add column to games-row
+    document.getElementById("games-row").append(col)
+
+    // Create rows
+    for (var i = 0; i < maxAttempts; i++) {
+        createRow(i, game)
+        setRow(i, i == 0, game)
+    }
+}
+
+function startGame() {
+    // Reset variables
+    currentAttempt = [...Array(WORD_LENGTH).keys()].map((_) => '_').join('')
+    finishedGames = [...Array(NUM_GAMES).keys()].map((_) => false)
+    attempts = []
+    if (calculateMaxAttempts) {
+        maxAttempts = 5 + NUM_GAMES
+    }
+
+    // Choose new random word
+    chooseWords()
+    console.log(`Chosen words: ${currentWords.join(', ')}`)
+
+    // Clear games row
+    var gamesRow = document.getElementById("games-row")
+    gamesRow.innerHTML = ""
 
     // Clear keyboard-table
     for (var i = 65; i < 91; i++) {
         var char = String.fromCharCode(i)
         var keyLetter = getKeyboardLetter(char)
-        
+
         // Remove classes
         keyLetter.classList.remove('wrong')
         keyLetter.classList.remove('place')
         keyLetter.classList.remove('correct')
     }
 
-    // Create rows
-    for (var i = 0; i < MAX_ATTEMPTS; i++) {
-        createRow(i)
-        setRow(i, i == 0)
+    // Create games
+    for (var game = 0; game < NUM_GAMES; game++) {
+        setGame(game)
+        if (game != NUM_GAMES - 1) {
+            // Add div for spacing
+            var col = document.createElement("td")
+            var spaceDiv = document.createElement("div")
+            spaceDiv.style.width = '100px'
+            col.append(spaceDiv)
+            gamesRow.append(col)
+        }
     }
 
-    // Reset variables
-    attempts = 0
+    // Set focus
     setFocus(0)
+}
+
+function checkWon(attempt) {
+    // Check if all words are in the attempts list
+    var didWon = true
+    for (var game = 0; game < NUM_GAMES; game++) {
+        if (!finishedGames[game]) {
+            didWon = false
+        }
+        // var word = currentWords[game]
+        // if (attempts.find((at) => at === word) === undefined) {
+        //     didWon = false
+        // }
+    }
+
+    if (didWon) {
+        // Same word, won
+        setTimeout(() => {
+            won()
+            setTimeout(startGame, 100)
+        }, 100)
+    } else if (attempts.length === maxAttempts) {
+        // Last attempt, lost
+        setTimeout(() => {
+            lost()
+            setTimeout(startGame, 100)
+        }, 100)
+    } else if (attempt !== null) {
+        // Continue playing
+        // Set new row
+        setFocus(0)
+        for (var game = 0; game < NUM_GAMES; game++) {
+            setRow(attempts.length, true, game)
+        }
+    }
 }
 
 async function onLoad() {
@@ -316,24 +413,7 @@ async function onLoad() {
             var attempt = submitAttempt()
 
             // Check state
-            if (attempt == currentWord) {
-                // Same word, won
-                setTimeout(() => {
-                    won()
-                    setTimeout(startGame, 100)
-                }, 100)
-            } else if (attempts === MAX_ATTEMPTS) {
-                // Last attempt, lost
-                setTimeout(() => {
-                    lost()
-                    setTimeout(startGame, 100)
-                }, 100)
-            } else if (attempt !== null) {
-                // Continue playing
-                // Set new row
-                setFocus(0)
-                setRow(attempts, true)
-            }
+            checkWon(attempt)
         } else if (code.substring(0, 3) === 'Key') {
             // Get pressed key
             var letter = code.substring(3)
