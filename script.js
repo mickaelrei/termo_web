@@ -8,7 +8,7 @@ var maxAttempts = 6
 var calculateMaxAttempts = true
 
 // Number of simultaneous games
-const NUM_GAMES = 30
+const NUM_GAMES = 1
 
 // Current letter focused
 var currentFocus = 0
